@@ -60,7 +60,7 @@ class MovieViewSet(viewsets.ModelViewSet):
         if actors:
             actors_ids = [int(actor) for actor in actors.split(",")]
             queryset = queryset.filter(actors__id__in=actors_ids)
-        return queryset.distinct()
+        return queryset.distinct().order_by("id")
 
 
 class MovieSessionViewSet(viewsets.ModelViewSet):
@@ -84,7 +84,7 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
         if movie:
             queryset = queryset.filter(movie=int(movie))
         if date:
-            queryset = queryset.filter(show_time=date)
+            queryset = queryset.filter(show_time__date=date)
         if self.action == "list":
             queryset = queryset.select_related("movie", "cinema_hall").annotate(
                 tickets_available=(
@@ -92,7 +92,7 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
                     - Count("tickets")
                 )
             )
-        return queryset
+        return queryset.order_by("id")
 
 
 class OrderViewSet(viewsets.ModelViewSet):
