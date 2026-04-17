@@ -92,7 +92,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         "tickets__movie_session__cicnema_hall"
     )
     serializer_class = OrderSerializer
-    # pagination_class = OrderPagination
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
