@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from django.db.models import F, Count
 
 from cinema.models import Genre, Actor, CinemaHall, Movie, MovieSession, Order
 
@@ -75,21 +76,27 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
         return MovieSessionSerializer
 
     def get_queryset(self):
-        movie = self.request.query_param.get("movie")
-        date = self.request.query_param.get("date")
+        movie = self.request.query_params.get("movie")
+        date = self.request.query_params.get("date")
         queryset = self.queryset
 
         if movie:
             queryset = MovieSession.objects.filter(movie=int(movie))
         if date:
             queryset = MovieSession.objects.filter(show_time=date)
+        if self.action == "list":
+            queryset = queryset.select_related("movie", "cinema_hall").annotate(
+                tickets_available=(
+                    F("cinema_hall__rows") * F("cinema_hall__seats_in_row")
+                    - Count("tickets")
+                )
+            )
         return queryset
 
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.prefetch_related(
-        "tickets__movie_session__movie",
-        "tickets__movie_session__cicnema_hall"
+        "tickets__movie_session__movie", "tickets__movie_session__cinema_hall"
     )
     serializer_class = OrderSerializer
 
