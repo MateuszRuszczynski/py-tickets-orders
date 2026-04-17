@@ -44,6 +44,22 @@ class MovieViewSet(viewsets.ModelViewSet):
 
         return MovieSerializer
 
+    def get_queryset(self):
+        title = self.request.query_params.get("title")
+        genres = self.request.query_params.get("genres")
+        actors = self.request.query_params.get("actors")
+        queryset = self.queryset
+
+        if title:
+            queryset = Movie.objects.filter(title__icontains=title)
+        if genres:
+            genres_ids = [int(genre) for genre in genres.split(",")]
+            queryset = Movie.objects.filter(genres__id__in=genres_ids)
+        if actors:
+            actors_ids = [int(actor) for actor in actors.split(",")]
+            queryset = Movie.objects.filter(actors__id__in=actors.ids)
+        return queryset.distinct()
+
 
 class MovieSessionViewSet(viewsets.ModelViewSet):
     queryset = MovieSession.objects.all()
@@ -57,6 +73,17 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
             return MovieSessionDetailSerializer
 
         return MovieSessionSerializer
+
+    def get_queryset(self):
+        movie = self.request.query_param.get("movie")
+        date = self.request.query_param.get("date")
+        queryset = self.queryset
+
+        if movie:
+            queryset = MovieSession.objects.filter(movie=int(movie))
+        if date:
+            queryset = MovieSession.objects.filter(show_time=date)
+        return queryset
 
 
 class OrderViewSet(viewsets.ModelViewSet):
