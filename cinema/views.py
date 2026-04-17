@@ -13,6 +13,7 @@ from cinema.serializers import (
     MovieDetailSerializer,
     MovieSessionDetailSerializer,
     MovieListSerializer,
+    OrderListSerializer,
     OrderSerializer,
 )
 
@@ -98,7 +99,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.prefetch_related(
         "tickets__movie_session__movie", "tickets__movie_session__cinema_hall"
     )
-    serializer_class = OrderSerializer
+    serializer_class = OrderListSerializer
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
