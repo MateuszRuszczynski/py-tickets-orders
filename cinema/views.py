@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import F, Count
 
 from cinema.models import Genre, Actor, CinemaHall, Movie, MovieSession, Order
@@ -82,7 +83,7 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
 
         if movie:
-            queryset = queryset.filter(movie=int(movie))
+            queryset = queryset.filter(movie_id=int(movie))
         if date:
             queryset = queryset.filter(show_time__date=date)
         if self.action == "list":
@@ -96,8 +97,10 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = Order.objects.prefetch_related(
-        "tickets__movie_session__movie", "tickets__movie_session__cinema_hall"
+        "tickets__movie_session__movie",
+        "tickets__movie_session__cinema_hall"
     )
     def get_serializer_class(self):
         if self.action == "list":
@@ -105,7 +108,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderSerializer
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user).order_by("-created_at")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
